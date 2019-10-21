@@ -33,7 +33,8 @@ class AuthController extends Controller
      * @param - http request object
      */
 
-     public function login(Request $request){
+     public function login(Request $request)
+     {
          $credentials = $request->only(['email', 'password']);
 
          if(!$token = auth()->attempt($credentials)){
@@ -43,12 +44,23 @@ class AuthController extends Controller
          return $this->respondWithToken($token);
      }
 
+     /**
+      * Logout endpoint
+      */
+     public function logout()
+     {
+        auth()->logout();
+
+        return response()->json(['message' => 'successfully logged out'], 200);
+     }
+
      /** 
       * helps to send our response with token
       * @param - token - the generated token
       */
 
-      protected function respondWithToken($token){
+      protected function respondWithToken($token)
+      {
           return response()->json([
               'access_token' => $token,
               'token_type' => 'bearer',

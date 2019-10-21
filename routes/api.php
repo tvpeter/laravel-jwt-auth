@@ -19,3 +19,8 @@ use Illuminate\Http\Request;
 
     Route::post('register', 'AuthController@register');
     Route::post('login', 'AuthController@login');
+    Route::post('logout', 'AuthController@logout');
+    
+    // API resource creates index, store, show, update, destroy and not include create and edit.
+    Route::apiResource('books', 'BookController');
+    Route::post('books/{book}/ratings', 'RatingController@store');
