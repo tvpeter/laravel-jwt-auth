@@ -4,9 +4,15 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\User;
+use Tymon\JWTAuth\JWTAuth;
 
 class AuthController extends Controller
 {
+    public function index()
+    {
+        $users = User::all();
+        return response()->json([$users]);
+    }
     /**
      * Register a new user
      * @param  - http request object
@@ -20,7 +26,10 @@ class AuthController extends Controller
             'password' => 'required|min:8',
         ]);
 
-        $user = User::create($validated);
+        $user = User::firstOrCreate([
+            'email'=> $request->email,
+        ],
+            [$validated]);
 
         $token = auth()->login($user);
 
@@ -36,8 +45,10 @@ class AuthController extends Controller
      public function login(Request $request)
      {
          $credentials = $request->only(['email', 'password']);
+         $token = auth()->attempt($credentials);
 
-         if(!$token = auth()->attempt($credentials)){
+         var_dump($token);
+         if(!$token){
              return response()->json(['error' => 'Unauthorized'], 401);
          }
 
