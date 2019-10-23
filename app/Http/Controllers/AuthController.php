@@ -27,9 +27,9 @@ class AuthController extends Controller
         ]);
 
         $user = User::firstOrCreate([
-            'email'=> $request->email,
-        ],
-            [$validated]);
+            'name' => $request->name,
+            'email' => $request->email,
+            ], $validated);
 
         $token = auth()->login($user);
 
