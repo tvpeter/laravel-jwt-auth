@@ -7,6 +7,7 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\TestCase;
 use App\User;
+use Illuminate\Support\Str;
 
 class UserTest extends TestCase
 {
@@ -16,10 +17,10 @@ class UserTest extends TestCase
     public function it_should_register_a_user()
     {
 
-        $response = $this->post('/api/v1/register', [
-            'email' => 'example@email.com',
-            'name' => 'John Doe',
-            'password' => 'passwordexample2019',
+        $response = $this->postJson('/api/v1/register', [
+            'email' => 'tvpeter@example.com',
+            'name' => 'tyonum peter vihiga',
+            'password' => bcrypt('passwordexample2019'),
         ]);
 
         $response->assertJsonStructure([
@@ -32,9 +33,9 @@ class UserTest extends TestCase
     /**@test */
     public function return_error_if_registration_data_is_not_complete()
     {
-        $response = $this->post('/api/v1/register', [
-            'email' => 'example@email.com',
-            'password' => 'passwordexample2019',
+        $response = $this->postJson('/api/v1/register', [
+            'email' => $this->faker->safeEmail,
+            'password' => bcrypt('passwordexample2019'),
         ]);
 
         $response->assertJsonStructure([
@@ -43,54 +44,60 @@ class UserTest extends TestCase
 
     }
     /** @test */
-    public function it_should_login_user(){
-        $this->post('/api/v1/register', [
-            'email' => 'tvpeter@email.com',
-            'name' => 'Tyonum Petr',
-            'password' => 'password2019',
-        ]);
+    public function it_should_login_user()
+    {
+       $user = factory(User::class)->create([
+        'name' => 'tyonum peter',
+        'email' => 'tvpeter@gmail.com',
+        'email_verified_at' => now(),
+        'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 
+       ]);
 
-        $response = $this->post('/api/v1/login', [
-            'email' => 'tvpeter@gmail.com',
-            'password' => 'password2019',
-        ]);
+       $payload = ['email' => 'tvpeter@gmail.com', 'password'=> 'password'];
+
+        $response = $this->postJson('/api/v1/login', $payload);
 
         $response->assertJsonStructure([
             'access_token',
             'token_type',
-            'expires_on',
+            'expires_in'
         ]);
     }
 
     /** @test */
     public function it_will_not_log_an_invalid_user_in()
     {
-        $this->post('/api/v1/register', [
-            'email' => 'tvpeter@email.com',
-            'name' => 'Tyonum Petr',
-            'password' => 'password2019',
-        ]);
-        $response = $this->post('api/v1/login', [
+        $response = $this->postJson('api/v1/login', [
             'email'    => 'tvpeter@email.com',
             'password' => 'invalidpasswordhere'
         ]);
         $response->assertJsonStructure([
-            'error',
+            'error'
         ]);
     }
 
     /** @test */
     public function it_should_log_a_user_out()
     {
-        $this->post('/api/v1/register', [
+        $user = $this->postJson('/api/v1/register', [
             'email' => 'tvpeter@email.com',
             'name' => 'Tyonum Petr',
             'password' => 'password2019',
         ]);
+        $token = json_decode($user->getContent()); 
+        $header = ['Authorization' => 'Bearer'.$token->access_token];
         
-        $response = $this->post('/api/v1/logout')
-            ->assertJson(['message' => 'successfully logged out'])
-            ->assertStatus(200);
+        $response = $this->json('post', 'api/v1/logout', [], $header);
+        $response->assertExactJson(['message' => 'successfully logged out']);
+       
+    }
 
+    public function it_should_reject_unauthenticated_user_logout()
+    {
+        $token = Str::random(60);
+        $header = ['Authorization' => 'Bearer'.$token];
+        
+        $response = $this->json('post', 'api/v1/logout', [], $header);
+        $response->assertNoContent(204);
     }
 }

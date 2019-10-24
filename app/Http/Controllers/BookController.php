@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Book;
+use App\Http\Requests\BookRequest;
 use App\Http\Resources\BookResource;
 use App\Rating;
+use Tymon\JWTAuth\Validators\Validator;
 
 class BookController extends Controller
 {
@@ -29,7 +31,7 @@ class BookController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(BookRequest $request)
     {
         $book = Book::firstOrCreate([
             'user_id' => $request->user()->id,
