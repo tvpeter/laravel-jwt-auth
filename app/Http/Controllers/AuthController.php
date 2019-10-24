@@ -27,14 +27,13 @@ class AuthController extends Controller
         ]);
 
         $user = User::firstOrCreate([
-            'email'=> $request->email,
-        ],
-            [$validated]);
+            'name' => $request->name,
+            'email' => $request->email,
+            ], $validated);
 
         $token = auth()->login($user);
 
         return $this->respondWithToken($token);
-
     }
 
     /**
@@ -47,8 +46,7 @@ class AuthController extends Controller
          $credentials = $request->only(['email', 'password']);
          $token = auth()->attempt($credentials);
 
-         var_dump($token);
-         if(!$token){
+         if(!$token){ 
              return response()->json(['error' => 'Unauthorized'], 401);
          }
 
